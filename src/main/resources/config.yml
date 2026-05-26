@@ -50,8 +50,14 @@ anti-bot:
   enabled: true
   captcha:
     enabled: true
-    # math, letters, image (chat-rendered)
-    type: "math"
+    # Supported types:
+    #   keyword - player must type a fixed phrase in chat (no leading slash)
+    #   math    - randomised "a + b" arithmetic challenge
+    #   letters - randomised 5-letter code
+    type: "keyword"
+    # Keyword the player has to type in chat exactly. Sent as a regular chat
+    # message - do NOT prefix with '/' (the leading dot is part of the phrase).
+    keyword: ".arisworld"
     timeout-seconds: 60
     max-attempts: 3
   fake-session:
@@ -123,10 +129,13 @@ anti-exploit:
     max-same-type-per-chunk: 32
 
 # -----------------------------------------------------------------------------
-# 4. Anti-Cheat
+# 4. Anti-Cheat (behavioural)
 # -----------------------------------------------------------------------------
+# Disabled by default: server owners who do not want the heuristics-based
+# checks rely on the keyword captcha above for player verification instead.
+# Set enabled: true to turn on the full behavioural anti-cheat engine.
 anti-cheat:
-  enabled: true
+  enabled: false
   # Most checks support a 'sensitivity' that scales their threshold to taste.
   killaura:
     enabled: true

@@ -43,6 +43,7 @@ public final class AntiBotModule implements Listener {
     private volatile boolean enabled;
     private volatile boolean captchaEnabled;
     private volatile String captchaType;
+    private volatile String captchaKeyword;
     private volatile int captchaTimeoutSeconds;
     private volatile int captchaMaxAttempts;
     private volatile boolean fakeSessionEnabled;
@@ -68,7 +69,8 @@ public final class AntiBotModule implements Listener {
     public void reload() {
         enabled = plugin.shieldConfig().bool("anti-bot.enabled", true);
         captchaEnabled = plugin.shieldConfig().bool("anti-bot.captcha.enabled", true);
-        captchaType = plugin.shieldConfig().string("anti-bot.captcha.type", "math").toLowerCase();
+        captchaType = plugin.shieldConfig().string("anti-bot.captcha.type", "keyword").toLowerCase();
+        captchaKeyword = plugin.shieldConfig().string("anti-bot.captcha.keyword", ".arisworld");
         captchaTimeoutSeconds = plugin.shieldConfig().integer("anti-bot.captcha.timeout-seconds", 60);
         captchaMaxAttempts = plugin.shieldConfig().integer("anti-bot.captcha.max-attempts", 3);
         fakeSessionEnabled = plugin.shieldConfig().bool("anti-bot.fake-session.enabled", true);
@@ -157,13 +159,15 @@ public final class AntiBotModule implements Listener {
         return switch (captchaType) {
             case "letters" -> Captcha.letters();
             case "math" -> Captcha.math();
-            default -> Captcha.math();
+            case "keyword" -> Captcha.keyword(captchaKeyword);
+            default -> Captcha.keyword(captchaKeyword);
         };
     }
 
     private void sendCaptcha(@NotNull Player player, @NotNull Captcha captcha) {
         player.sendMessage("§6§l[Shield] §r§fПодтвердите, что вы не бот.");
-        player.sendMessage("§e" + captcha.prompt + " §7(напишите ответ в чат)");
+        player.sendMessage("§e" + captcha.prompt);
+        player.sendMessage("§7Напишите ответ в чат §обычным сообщением§7 (без §f/§7).");
     }
 
     private static boolean isUsernameSuspicious(@NotNull String name) {
@@ -196,6 +200,11 @@ public final class AntiBotModule implements Listener {
             }
             String s = sb.toString();
             return new Captcha("Введите код: " + s, s);
+        }
+
+        static Captcha keyword(@NotNull String word) {
+            String trimmed = word.strip();
+            return new Captcha("Чтобы войти, напишите в чат: §f" + trimmed, trimmed);
         }
 
         boolean matches(String answer) {

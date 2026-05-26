@@ -17,7 +17,7 @@ public servers alike.
 | Module          | What it does                                                                 |
 |-----------------|------------------------------------------------------------------------------|
 | Anti-DDoS       | Per-IP and global handshake / login rate-limits, reconnect-spam scoring, auto-ban |
-| Anti-Bot        | Chat-based captcha, fake-session detection, join-flood guard, quarantine     |
+| Anti-Bot        | Keyword captcha (default: type `.arisworld` in chat), fake-session detection, join-flood guard, quarantine |
 | Anti-Exploit    | NBT/book/sign/creative/command/tab-complete/chunk/entity filters             |
 | Anti-Cheat      | KillAura, Reach, Speed, Fly, NoFall, Scaffold, AutoClicker, AimAssist, Timer, Velocity, Jesus |
 | Anti-Xray       | Behavioural mining-pattern detector (uses Paper's native obfuscator)         |
@@ -63,7 +63,18 @@ general:
   observe-only: false       # set true to log violations without blocking
   bypass-permission: "shield.bypass"
 
+anti-bot:
+  captcha:
+    enabled: true
+    type: "keyword"          # keyword | math | letters
+    keyword: ".arisworld"    # what the player must type in chat (no /)
+    timeout-seconds: 60
+    max-attempts: 3
+
+# behavioural anti-cheat is OFF by default — turn it on only if you want
+# the KillAura/Reach/Speed/etc. checks in addition to the keyword captcha
 anti-cheat:
+  enabled: false
   actions:
     warn-at: 5
     alert-at: 10
@@ -71,9 +82,14 @@ anti-cheat:
     ban-at: 60
 ```
 
-Lowering the threshold values makes Shield more aggressive; raising them
-relaxes it. Every check inside `anti-cheat:` also has a per-check sensitivity
-or limit you can tune individually.
+The keyword captcha is the primary verification: on every join Shield asks
+the player to write the configured phrase **as a regular chat message** (no
+leading `/`). They have `timeout-seconds` to do so and `max-attempts` retries
+before being kicked. Change `keyword:` to whatever you want.
+
+If you also want the behavioural anti-cheat (KillAura/Reach/Speed/Fly/...),
+set `anti-cheat.enabled: true`. Each individual check has its own sensitivity
+or limit you can tune.
 
 ### Webhooks
 
