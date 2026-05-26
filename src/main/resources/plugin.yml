@@ -1,0 +1,26 @@
+name: Shield
+version: "${version}"
+main: com.shield.ShieldPlugin
+api-version: "1.21"
+author: ignisg20
+description: Production-ready security plugin for Paper/Spigot/Purpur 1.21.x.
+load: STARTUP
+folia-supported: false
+
+commands:
+  shield:
+    description: Shield administrative command.
+    usage: /shield <status|banip|whitelist|scan|quarantine|debug|reload>
+    permission: shield.admin
+    aliases: [sh, sec, security]
+
+permissions:
+  shield.admin:
+    description: Allows full access to Shield management.
+    default: op
+  shield.bypass:
+    description: Bypass all Shield checks (use with caution).
+    default: false
+  shield.notify:
+    description: Receive in-game Shield alerts.
+    default: op
