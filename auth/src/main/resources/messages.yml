@@ -1,0 +1,4 @@
+# messages.yml is intentionally empty: ArisAuth keeps all customisable strings
+# inside config.yml under the `messages:` block (so the plugin reloads in a
+# single step). If you prefer a separate file, copy the `messages:` block from
+# config.yml into this file and set `messages.use-external-file: true`.

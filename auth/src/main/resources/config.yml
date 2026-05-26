@@ -1,0 +1,140 @@
+# =============================================================================
+# ArisAuth - configuration
+# =============================================================================
+# All durations are in seconds unless otherwise specified.
+
+general:
+  # How long a successful authentication is remembered after the player
+  # disconnects. If the player rejoins from the same IP within this window
+  # they skip the /login prompt entirely.
+  session-seconds: 300
+  # If true, brand-new registrations also count as authenticated immediately
+  # (so the player doesn't have to /login right after /register).
+  auto-login-on-register: true
+  # Players are kicked when they fail to authenticate within this many seconds.
+  login-timeout-seconds: 60
+
+password:
+  # bcrypt cost factor. 10 is fast and secure. 12 is slower but considered
+  # "future-proof" - use it on servers that don't get many logins per second.
+  bcrypt-rounds: 10
+  # Reject weak passwords below this length.
+  min-length: 5
+  max-length: 64
+
+brute-force:
+  enabled: true
+  # Wrong-password attempts before the IP is throttled.
+  max-attempts: 5
+  # Lockout duration once max-attempts is reached.
+  lockout-seconds: 600
+  # The lockout state expires after this many seconds of inactivity.
+  attempt-window-seconds: 600
+
+storage:
+  # Either 'sqlite' (recommended) or 'yaml'.
+  type: "sqlite"
+  sqlite:
+    file: "users.db"
+  yaml:
+    file: "users.yml"
+
+# -----------------------------------------------------------------------------
+# UI / effects (titles, action-bar, boss-bar, particles, sounds).
+# -----------------------------------------------------------------------------
+ui:
+  bossbar:
+    enabled: true
+    color: "YELLOW"        # PINK|BLUE|RED|GREEN|YELLOW|PURPLE|WHITE
+    style: "SEGMENTED_10"  # SOLID|SEGMENTED_6|SEGMENTED_10|SEGMENTED_12|SEGMENTED_20
+  actionbar:
+    enabled: true
+    interval-ticks: 40     # 2 seconds
+  title:
+    enabled: true
+    fade-in: 10
+    stay: 50
+    fade-out: 10
+  effects:
+    particles:
+      enabled: true
+      portal-circle: true
+      welcome-burst: true
+    sounds:
+      enabled: true
+    blindness:
+      # Apply Blindness potion effect while the player has not authenticated.
+      # Removed instantly on a successful login/register.
+      enabled: true
+      # Amplifier 0 = standard blindness. 1 = pitch-black. Higher values do not
+      # darken the screen further but Mojang renders them anyway.
+      amplifier: 0
+
+# -----------------------------------------------------------------------------
+# Texts. Use & for color codes, %placeholder% for substitutions.
+# -----------------------------------------------------------------------------
+messages:
+  # Title screen when the player joins and must log in.
+  login-title-main: "&e&lАвторизация"
+  login-title-sub: "&7Введите &f/login <пароль>"
+  register-title-main: "&a&lРегистрация"
+  register-title-sub: "&7Введите &f/register <пароль> <повтор>"
+  welcome-title-main: "&aДобро пожаловать"
+  welcome-title-sub: "&fна сервер!"
+  bossbar-text: "&e⏱ Время на авторизацию: &f%seconds%s"
+  actionbar-reminder-login: "&eВведите &f/login <пароль>"
+  actionbar-reminder-register: "&aВведите &f/register <пароль> <повтор>"
+  chat-prefix: "&8[&6ArisAuth&8]&r "
+  chat-must-login: "&cВы ещё не вошли. Используйте &f/login <пароль>&c."
+  chat-must-register: "&aВведите &f/register <пароль> <повтор>&a для создания аккаунта."
+  chat-already-authed: "&aВы уже вошли."
+  chat-already-registered: "&cВы уже зарегистрированы. Используйте &f/login <пароль>&c."
+  chat-register-mismatch: "&cПароли не совпадают."
+  chat-register-too-short: "&cПароль слишком короткий (минимум %min% символов)."
+  chat-register-too-long: "&cПароль слишком длинный (максимум %max% символов)."
+  chat-register-success: "&aАккаунт создан. Добро пожаловать!"
+  chat-login-success: "&aАвторизация успешна. Приятной игры!"
+  chat-login-wrong: "&cНеверный пароль. Осталось попыток: &f%left%&c."
+  chat-changepass-success: "&aПароль успешно изменён."
+  chat-changepass-wrong-old: "&cСтарый пароль не совпадает."
+  chat-kick-timeout: "&cВремя авторизации истекло."
+  chat-kick-locked: "&cСлишком много неверных попыток. Попробуйте через %minutes% мин."
+  chat-blocked-action: "&cСначала войдите: &f/login <пароль>&c."
+  chat-session-restored: "&aСессия восстановлена."
+
+# -----------------------------------------------------------------------------
+# Sound names follow the Bukkit Sound enum. Volume/pitch are floats.
+# Set 'name' to empty to disable a sound without disabling all sounds.
+# -----------------------------------------------------------------------------
+sounds:
+  login-prompt:
+    name: "BLOCK_NOTE_BLOCK_PLING"
+    volume: 0.8
+    pitch: 1.4
+  register-prompt:
+    name: "BLOCK_NOTE_BLOCK_BELL"
+    volume: 0.8
+    pitch: 1.0
+  success:
+    name: "ENTITY_PLAYER_LEVELUP"
+    volume: 1.0
+    pitch: 1.2
+  failure:
+    name: "BLOCK_NOTE_BLOCK_BASS"
+    volume: 0.8
+    pitch: 0.8
+  tick:
+    name: "UI_BUTTON_CLICK"
+    volume: 0.4
+    pitch: 1.6
+
+# -----------------------------------------------------------------------------
+# Particle effects (Bukkit Particle enum).
+# -----------------------------------------------------------------------------
+particles:
+  waiting:
+    name: "PORTAL"
+    count: 30
+  success:
+    name: "TOTEM_OF_UNDYING"
+    count: 80
