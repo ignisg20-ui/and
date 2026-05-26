@@ -1,0 +1,35 @@
+name: ArisAuth
+version: "1.0.0"
+main: com.aris.auth.AuthPlugin
+api-version: "1.21"
+author: ignisg20
+description: Authorization plugin (login/register with bcrypt + session cache) for Paper 1.21.x.
+load: STARTUP
+folia-supported: false
+
+commands:
+  register:
+    description: Register a new account.
+    usage: /register <password> <repeat>
+    aliases: [reg]
+  login:
+    description: Log in with your password.
+    usage: /login <password>
+    aliases: [l]
+  changepassword:
+    description: Change your account password.
+    usage: /changepassword <old> <new>
+    aliases: [changepass, cp]
+  auth:
+    description: ArisAuth administration command.
+    usage: /auth <reload|status|session>
+    permission: arisauth.admin
+    aliases: [arisauth]
+
+permissions:
+  arisauth.admin:
+    description: Administrative commands.
+    default: op
+  arisauth.bypass:
+    description: Skip the authentication step entirely (use with caution).
+    default: false
