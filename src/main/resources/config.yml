@@ -1,0 +1,319 @@
+# =============================================================================
+# Shield - production security plugin configuration
+# Hot-reload with /shield reload
+# =============================================================================
+
+general:
+  # Should suspicious actions only be logged (true) or also actively blocked (false)?
+  observe-only: false
+  # Players holding this permission bypass every Shield check.
+  bypass-permission: "shield.bypass"
+  # How often (ticks) the async housekeeping job runs.
+  housekeeping-interval-ticks: 100
+  # Suppress identical alerts arriving within this window (ms) to dampen spam.
+  alert-dedup-window-ms: 5000
+
+# -----------------------------------------------------------------------------
+# 1. Anti-DDoS
+# -----------------------------------------------------------------------------
+anti-ddos:
+  enabled: true
+  # Hard cap of brand-new TCP connections per second (entire server).
+  max-new-connections-per-second: 25
+  # Per-IP cap of new connections in the configured sliding window.
+  per-ip:
+    max-connections: 6
+    window-seconds: 10
+  handshake:
+    max-per-second: 40
+    max-per-ip-window: 5
+    window-seconds: 5
+  login:
+    max-per-ip-window: 4
+    window-seconds: 30
+  reconnect-spam:
+    min-interval-ms: 1500
+    score-threshold: 5
+  whitelist-burst:
+    # If whitelist is on, allow at most this many new whitelisted logins per second.
+    max-per-second: 10
+  auto-ban:
+    enabled: true
+    # Total points before an IP is temporarily blocked.
+    threshold: 12
+    duration-seconds: 600
+
+# -----------------------------------------------------------------------------
+# 2. Anti-Bot
+# -----------------------------------------------------------------------------
+anti-bot:
+  enabled: true
+  captcha:
+    enabled: true
+    # Supported types:
+    #   keyword - player must type a fixed phrase in chat (no leading slash)
+    #   math    - randomised "a + b" arithmetic challenge
+    #   letters - randomised 5-letter code
+    type: "keyword"
+    # Keyword the player has to type in chat exactly. Sent as a regular chat
+    # message - do NOT prefix with '/' (the leading dot is part of the phrase).
+    keyword: ".arisworld"
+    timeout-seconds: 60
+    max-attempts: 3
+  fake-session:
+    enabled: true
+  join-flood:
+    enabled: true
+    max-joins-per-second: 5
+    cooldown-seconds: 20
+  quarantine:
+    enabled: true
+    # Default duration when a player is put in quarantine programmatically.
+    default-duration-seconds: 120
+    # Quarantined players are limited to this radius around their entry point.
+    radius-blocks: 5
+    deny-chat: true
+    deny-commands: true
+    deny-block-changes: true
+
+# -----------------------------------------------------------------------------
+# 3. Anti-Exploit
+# -----------------------------------------------------------------------------
+anti-exploit:
+  enabled: true
+  packet:
+    # Hard cap on per-player inbound packet rate (packets/second).
+    max-packets-per-second: 500
+    # Hard cap on a single packet payload (bytes) before we cancel & disconnect.
+    max-packet-size-bytes: 2097152
+    # When true the entire connection is dropped on a malformed/oversized packet.
+    disconnect-on-violation: true
+  nbt:
+    # Skull/profile component depth limit; deeply nested NBT can crash clients/servers.
+    max-depth: 12
+    max-list-size: 1024
+    forbid-keys:
+      - "Riding"
+      - "Passengers"
+      - "WorldUUIDMost"
+      - "WorldUUIDLeast"
+      - "BlockEntityTag"
+  book:
+    max-pages: 50
+    max-page-length: 2048
+    forbid-formatting-codes: true
+  sign:
+    max-line-length: 96
+    block-color-codes: false
+  creative-inventory:
+    forbid-illegal-items: true
+    forbid-illegal-nbt: true
+  command-injection:
+    enabled: true
+    # Patterns are matched against the full preprocessed command string.
+    forbid-patterns:
+      - "(?i)\\$\\{[^}]+}"
+      - "(?i)\\bexec\\b"
+      - "(?i)\\beval\\b"
+      - "(?i)<script"
+  tab-complete:
+    max-completions: 200
+    rate-limit-per-second: 8
+  chunk-crash:
+    enabled: true
+  entity-overflow:
+    enabled: true
+    # Max entities tracked per chunk before we deny new spawns.
+    max-per-chunk: 80
+    # Max entities of the same type per chunk.
+    max-same-type-per-chunk: 32
+
+# -----------------------------------------------------------------------------
+# 4. Anti-Cheat (behavioural)
+# -----------------------------------------------------------------------------
+# Disabled by default: server owners who do not want the heuristics-based
+# checks rely on the keyword captcha above for player verification instead.
+# Set enabled: true to turn on the full behavioural anti-cheat engine.
+anti-cheat:
+  enabled: false
+  # Most checks support a 'sensitivity' that scales their threshold to taste.
+  killaura:
+    enabled: true
+    max-targets-per-second: 6
+    max-yaw-delta-degrees: 75.0
+  reach:
+    enabled: true
+    survival-max-distance: 3.05
+    creative-max-distance: 5.6
+  speed:
+    enabled: true
+    sensitivity: 1.0
+    max-horizontal-bps: 8.4
+  fly:
+    enabled: true
+    sensitivity: 1.0
+    max-suspended-ticks: 80
+  no-fall:
+    enabled: true
+  scaffold:
+    enabled: true
+    max-place-rate: 12
+  auto-clicker:
+    enabled: true
+    max-cps: 18
+    consistency-stddev-threshold: 6.0
+  aim-assist:
+    enabled: true
+    suspicious-gcd-threshold: 0.0009
+  timer:
+    enabled: true
+    # Allowed ratio of actual ticks vs expected (1.0 = perfectly in sync).
+    max-ratio: 1.18
+    min-ratio: 0.85
+  velocity:
+    enabled: true
+    min-take-percent: 0.20
+  jesus:
+    enabled: true
+
+  # Each violation adds the configured weight to the player's score.
+  weights:
+    killaura: 4
+    reach: 5
+    speed: 3
+    fly: 5
+    nofall: 4
+    scaffold: 4
+    autoclicker: 2
+    aimassist: 2
+    timer: 3
+    velocity: 3
+    jesus: 3
+  # When the score crosses one of the thresholds the action is executed.
+  actions:
+    warn-at: 5
+    alert-at: 10
+    kick-at: 25
+    ban-at: 60
+  # How fast violations age out (seconds).
+  score-decay-seconds: 90
+  # Minimum gameplay time before checks become active to dampen false positives.
+  warmup-seconds: 5
+
+# -----------------------------------------------------------------------------
+# 5. Anti-Xray
+# -----------------------------------------------------------------------------
+anti-xray:
+  enabled: true
+  # When true we let Paper's native engine do the obfuscation and only run the
+  # behavioural detector. Most servers should keep this on - native engine is
+  # significantly faster than user-land packet rewrites.
+  use-native-engine: true
+  fake-ore:
+    enabled: false
+    # Generate fake diamond/ancient debris blocks while a chunk is being mined
+    # to identify clients that automatically swing toward unseen ores.
+    fake-block: "DIAMOND_ORE"
+    decoy-count-per-chunk: 4
+  mining-pattern:
+    enabled: true
+    # Window (seconds) used to evaluate the mining ratio.
+    window-seconds: 60
+    # Minimum mined blocks before any decision is taken (false-positive guard).
+    minimum-samples: 80
+    # Ratio of valuables to stone/dirt that triggers a soft alert.
+    suspicious-ratio: 0.30
+    valuables:
+      - DIAMOND_ORE
+      - DEEPSLATE_DIAMOND_ORE
+      - ANCIENT_DEBRIS
+      - EMERALD_ORE
+      - DEEPSLATE_EMERALD_ORE
+      - GOLD_ORE
+      - DEEPSLATE_GOLD_ORE
+
+# -----------------------------------------------------------------------------
+# 6. Anti-Crash
+# -----------------------------------------------------------------------------
+anti-crash:
+  enabled: true
+  packet-spam:
+    max-per-second: 800
+  chunk-load:
+    enabled: true
+    max-per-player-per-second: 30
+  entity-spawn:
+    enabled: true
+    max-per-second: 60
+  redstone:
+    enabled: true
+    # Maximum block updates in a chunk per tick before we throttle.
+    max-updates-per-chunk-per-tick: 600
+  hopper-abuse:
+    enabled: true
+    max-hoppers-per-chunk: 24
+
+# -----------------------------------------------------------------------------
+# 7. Anti-OP exploit
+# -----------------------------------------------------------------------------
+anti-op:
+  enabled: true
+  # Whitelist of UUIDs allowed to receive operator privileges (empty = anyone).
+  authorized-uuids: []
+  # Automatically revoke OP that was granted without going through Shield.
+  auto-rollback: true
+  audit-all-commands-run-by-ops: true
+
+# -----------------------------------------------------------------------------
+# 8. Anti-console exploit
+# -----------------------------------------------------------------------------
+anti-console:
+  enabled: true
+  dangerous-commands:
+    - "stop"
+    - "restart"
+    - "deop"
+    - "ban-ip"
+    - "save-all"
+    - "execute"
+    - "minecraft:execute"
+    - "fill"
+    - "minecraft:fill"
+  # Sandboxed commands are allowed but logged and dispatched through Shield's
+  # validation pipeline rather than the raw Bukkit dispatcher.
+  sandbox-enabled: true
+  permission-validation: true
+
+# -----------------------------------------------------------------------------
+# 9. Logging & alerts
+# -----------------------------------------------------------------------------
+logging:
+  enabled: true
+  level: "INFO"
+  # Where the rotating audit log lives, relative to the plugin data folder.
+  file: "logs/security.log"
+  rotate-mb: 10
+  keep-files: 5
+
+webhook:
+  discord:
+    enabled: false
+    url: ""
+    username: "Shield"
+    avatar-url: ""
+  telegram:
+    enabled: false
+    bot-token: ""
+    chat-id: ""
+  # Severity levels: INFO, LOW, MEDIUM, HIGH, CRITICAL
+  minimum-severity: "MEDIUM"
+
+# -----------------------------------------------------------------------------
+# 10. Whitelist / banlist (Shield-managed, separate from vanilla)
+# -----------------------------------------------------------------------------
+whitelist:
+  enabled: false
+  entries: []
+
+ban:
+  ips: []
