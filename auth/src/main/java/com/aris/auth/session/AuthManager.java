@@ -66,6 +66,7 @@ public final class AuthManager {
         }
 
         AuthHud hud = plugin.hud();
+        hud.applyBlindness(player);
         hud.showTitleFor(player, state);
         hud.attachBossBar(player, state);
         hud.startActionBarLoop(player, state);

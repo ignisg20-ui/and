@@ -55,6 +55,8 @@ public final class AuthConfig {
     public volatile boolean particlePortalCircle;
     public volatile boolean particleWelcomeBurst;
     public volatile boolean soundsEnabled;
+    public volatile boolean blindnessEnabled;
+    public volatile int blindnessAmplifier;
 
     // ---- particles ----------------------------------------------------------
     public volatile @Nullable Particle waitingParticle;
@@ -110,6 +112,8 @@ public final class AuthConfig {
         particlePortalCircle = c.getBoolean("ui.effects.particles.portal-circle", true);
         particleWelcomeBurst = c.getBoolean("ui.effects.particles.welcome-burst", true);
         soundsEnabled = c.getBoolean("ui.effects.sounds.enabled", true);
+        blindnessEnabled = c.getBoolean("ui.effects.blindness.enabled", true);
+        blindnessAmplifier = Math.max(0, c.getInt("ui.effects.blindness.amplifier", 0));
 
         waitingParticle = parseParticle(c.getString("particles.waiting.name", "PORTAL"));
         waitingParticleCount = Math.max(1, c.getInt("particles.waiting.count", 30));

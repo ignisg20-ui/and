@@ -12,6 +12,8 @@ import org.bukkit.Particle;
 import org.bukkit.boss.BarFlag;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,6 +37,7 @@ public final class AuthHud {
     private final ConcurrentHashMap<UUID, BukkitTask> actionbarTasks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<UUID, BukkitTask> timeoutTasks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<UUID, BukkitTask> bossbarTasks = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, BukkitTask> titleTasks = new ConcurrentHashMap<>();
 
     public AuthHud(@NotNull AuthPlugin plugin) {
         this.plugin = plugin;
@@ -45,7 +48,32 @@ public final class AuthHud {
         if (!c.titleEnabled) return;
         String main = Texts.colorise(c.message(state.registered() ? "login-title-main" : "register-title-main"));
         String sub = Texts.colorise(c.message(state.registered() ? "login-title-sub" : "register-title-sub"));
-        player.sendTitle(main, sub, c.titleFadeIn, c.titleStay, c.titleFadeOut);
+        // Initial title uses the configured fade-in for a smooth intro.
+        player.sendTitle(main, sub, c.titleFadeIn, 100, 10);
+        // Repeating refresh keeps the title pinned for the entire auth window.
+        // Mojang's vanilla titles fade out after `stay`; re-sending with a long
+        // stay value and fade-in=0 makes the prompt look permanent.
+        BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            if (state.authenticated() || !player.isOnline()) return;
+            player.sendTitle(main, sub, 0, 100, 10);
+        }, 80L, 80L);
+        titleTasks.put(player.getUniqueId(), task);
+    }
+
+    public void applyBlindness(@NotNull Player player) {
+        AuthConfig c = plugin.config();
+        if (!c.blindnessEnabled) return;
+        // Integer.MAX_VALUE / 20 = ~3.4 years. Ambient + no particles + no icon
+        // so the HUD stays minimal.
+        player.addPotionEffect(new PotionEffect(
+                PotionEffectType.BLINDNESS,
+                Integer.MAX_VALUE,
+                c.blindnessAmplifier,
+                false, false, false));
+    }
+
+    public void clearBlindness(@NotNull Player player) {
+        player.removePotionEffect(PotionEffectType.BLINDNESS);
     }
 
     public void attachBossBar(@NotNull Player player, @NotNull AuthState state) {
@@ -161,8 +189,15 @@ public final class AuthHud {
         cancel(actionbarTasks.remove(id));
         cancel(timeoutTasks.remove(id));
         cancel(bossbarTasks.remove(id));
+        cancel(titleTasks.remove(id));
         if (state.bossbar() instanceof BossBar bar) {
             bar.removeAll();
+        }
+        // Clear any leftover title and blindness instantly when the player
+        // transitions out of the auth state (whether authenticated or quit).
+        if (player.isOnline()) {
+            player.resetTitle();
+            clearBlindness(player);
         }
     }
 

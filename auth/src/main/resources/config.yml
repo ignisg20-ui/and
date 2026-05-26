@@ -62,6 +62,13 @@ ui:
       welcome-burst: true
     sounds:
       enabled: true
+    blindness:
+      # Apply Blindness potion effect while the player has not authenticated.
+      # Removed instantly on a successful login/register.
+      enabled: true
+      # Amplifier 0 = standard blindness. 1 = pitch-black. Higher values do not
+      # darken the screen further but Mojang renders them anyway.
+      amplifier: 0
 
 # -----------------------------------------------------------------------------
 # Texts. Use & for color codes, %placeholder% for substitutions.
